@@ -1,0 +1,38 @@
+{
+  "name": "acode-plugin-copilot-acode",
+  "version": "1.0.1",
+  "description": "Template for Acode plugin",
+  "main": "dist/main.js",
+  "repository": "",
+  "author": "rsjRoni <ronilson.users>",
+  "license": "MIT",
+  "dependencies": {
+    "acorn": "^8.14.0",
+    "axios": "^1.7.9",
+    "html-tag-js": "^1.1.22"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.18.10",
+    "@babel/core": "^7.18.13",
+    "@babel/plugin-transform-runtime": "^7.19.6",
+    "@babel/preset-env": "^7.18.10",
+    "autoprefixer": "^10.4.14",
+    "babel-loader": "^9.1.0",
+    "jszip": "^3.10.1",
+    "live-server": "^1.2.2",
+    "postcss": "^8.4.21",
+    "postcss-loader": "^7.0.2",
+    "prettier": "3.0.0",
+    "raw-loader": "^4.0.2",
+    "sass": "^1.57.1",
+    "sass-loader": "^13.2.0",
+    "webpack": "^5.74.0",
+    "webpack-cli": "^5.0.0"
+  },
+  "scripts": {
+    "build": "webpack",
+    "build-release": "webpack --mode production",
+    "start-dev": "node .vscode/start-dev"
+  },
+  "browserslist": "cover 100%,not android < 5"
+}

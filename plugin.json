@@ -1,0 +1,16 @@
+{
+  "id": "rsjronilson.acode.ninja",
+  "name": "Acode Ninja",
+  "main": "dist/main.js",
+  "version": "1.0.1",
+  "readme": "readme.md",
+  "icon": "icon.png",
+  "files": ["assets/icon.png"],
+  "minVersionCode": 290,
+  "price": 0,
+  "author": {
+    "name": "RsjRoni",
+    "email": "ronilson.stos@gmail.com",
+    "github": "ronilson-users"
+  }
+}
