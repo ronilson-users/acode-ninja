@@ -1,28 +1,26 @@
+function calcular(a, b, operacao) {
+ // body...
+ return a + b
+}
+
+
+console.log(calcular(5, 6))
 
 function testAllConsoleTypes() {
 
  const usuario = { id: 123, nome: "Teste" };
  const config = { tema: "dark" };
- console.debug("Debug: Variáveis atuais", JSON.stringify({ usuario, config }, null, 2));
- // Console padrão
+ console.debug("Debug: Variáveis atuais",
+  JSON.stringify({ usuario, config }, null, 2));
  console.log("Este é um LOG normal");
-
- // Console de informação
- console.info("Informação importante!", { detalhes: { versao: "1.0", autor: "Acode" } });
-
- // Console de aviso
+ console.info("Informação importante!",
+  { detalhes: { versao: "1.0", autor: "Acode" } });
  console.warn("Atenção: Isso é um aviso!", "Operação pode ser lenta");
-
- // Console de erro
  console.error("Erro crítico!", new Error("Falha na conexão"), { status: 500 });
-
- // Console de debug
  console.debug("Debug: Variáveis atuais", {
   usuario: { id: 123, nome: "Teste" },
   config: { tema: "dark" }
  });
-
- // Console com formatação especial
  console.log("%cEstilo customizado!",
   "color: #ff00ff; font-size: 10px; font-weight: bold;");
 }

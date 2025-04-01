@@ -24,6 +24,7 @@ class AcodeConsole {
  /**
  * Cria a interface do logger
  */
+ 
  createLoggerView() {
   // Elemento principal
   this.loggerView = document.createElement("div");
@@ -501,6 +502,8 @@ border-bottom: 1px solid #444;
 margin-bottom: 5px;
 background: #2a2a2a;
 border-radius: 2px;
+background: var(--primary-color);
+    transition: background 0.2s;
 `;
 
   const [header, ...responseLines] = message.split("\n");
@@ -512,10 +515,16 @@ border-radius: 2px;
 
    const headerDiv = document.createElement("div");
    headerDiv.style.cssText = `
-display: flex;
-align-items: center;
-cursor: pointer;
-padding: 4px 0;
+
+ display: flex;
+      align-items: center;
+      cursor: pointer;
+      padding: 4px 0;
+      gap: 8px;
+      flex-wrap: wrap;
+
+
+
 `;
 
    const methodSpan = document.createElement("span");
@@ -535,11 +544,12 @@ color: ${method === "GET" ? "#55ff55" :
    const urlSpan = document.createElement("span");
    urlSpan.textContent = url;
    urlSpan.style.cssText = `
-flex: 1;
-color: #aaa;
-white-space: nowrap;
-overflow: hidden;
-text-overflow: ellipsis;
+      flex: 1;
+      color: var(--text-color);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-width: 100px;
 `;
    headerDiv.appendChild(urlSpan);
 
@@ -558,12 +568,15 @@ color: ${status.toString().startsWith("2") ? "#55ff55" :
    const responseDiv = document.createElement("div");
    responseDiv.style.cssText = `
 display: none;
-padding: 8px;
-background: #333;
-border-radius: 2px;
-margin-top: 4px;
-white-space: pre-wrap;
-font-size: 10px;
+      padding: 8px;
+      background: var(--secondary-color);
+      border-radius: 4px;
+      margin-top: 8px;
+      white-space: pre-wrap;
+      font-size: 11px;
+      color: var(--text-color);
+      max-height: 200px;
+      overflow: auto;
 `;
 
    try {
