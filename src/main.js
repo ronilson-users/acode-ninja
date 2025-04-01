@@ -37,7 +37,10 @@ class AcodeConsole {
   this.createTooltip();
  }
 
- // UI tooltip
+ /**
+  * description
+  *
+  */
  createTooltip() {
   this.tooltip = document.createElement('div');
   Object.assign(this.tooltip.style, {
@@ -63,7 +66,10 @@ class AcodeConsole {
 
  }
 
- // UI Logger Viewer
+ /**
+  * description
+  *
+  */
  createLoggerViewer() {
   this.loggerView = document.createElement("div");
   Object.assign(this.loggerView.style, {
@@ -226,10 +232,10 @@ class AcodeConsole {
  }
 
  /**
- * description
- *
- */
- getAceLines() {
+  * description
+  *
+  */
+  getAceLines() {
   const editorContainer = document.querySelector('.ace_editor');
   if (!editorContainer) return [];
   return editorContainer.querySelectorAll('.ace_scroller .ace_layer.ace_text-layer .ace_line');
@@ -300,49 +306,38 @@ class AcodeConsole {
   * description
   *
   */
- // addOutput(aceLineIdx, code, type = 'log') {
- //  this.refreshAceLines();
- //  const line = this.aceLines[aceLineIdx];
- //  if (!line) return;
-
- //  const existingOutput = line.querySelector(".console-output");
- //  if (existingOutput) existingOutput.remove();
-
- //  const consoleOutput = document.createElement("pre");
- //  consoleOutput.className = `console-output console-${type}`;
- //  consoleOutput.textContent = `${code}`;
- //  consoleOutput.style.cssText = `font-style: normal; display: inline; margin-left: 5px;`;
- //  line.appendChild(consoleOutput);
-
- //  this.addGutterMarker(aceLineIdx);
-
- //  consoleOutput.addEventListener('click', () => {
- //   this.editor.gotoLine(aceLineIdx + 1);
- //   this.editor.focus();
- //  });
- // }
- 
  addOutput(aceLineIdx, code, type = 'log') {
-  const marker = this.session.addDynamicMarker({
-    update: (html, markerLayer, session, config) => {
-      const screenPos = markerLayer.$getTop(aceLineIdx, config);
-      const leftPos = markerLayer.$padding + this.renderer.gutterWidth + 5;
-      html.push(
-        `<pre class="console-output console-${type}" style="position: absolute; top: ${screenPos}px; left: ${leftPos}px; font-style: normal; margin-left: 5px;">${code}</pre>`
-      );
-    },
-    type: "text",
-    inFront: true
-  });
+   console.log('iniciou addOutput')
+    
+  this.refreshAceLines();
+  const line = this.aceLines[aceLineIdx];
+  if (!line) return;
+
+  const existingOutput = line.querySelector(".console-output");
+  if (existingOutput) existingOutput.remove();
+
+  const consoleOutput = document.createElement("pre");
+  consoleOutput.className = `console-output console-${type}`;
+  consoleOutput.textContent = `${code}`;
+  consoleOutput.style.cssText = `font-style: normal; display: inline; margin-left: 5px;`;
+  line.appendChild(consoleOutput);
 
   this.addGutterMarker(aceLineIdx);
-}
 
+  consoleOutput.addEventListener('click', () => {
+   this.editor.gotoLine(aceLineIdx + 1);
+   
+  
+   
+   this.editor.focus();
+  });
+ }
+ 
  /**
   * description
   *
   */
- addGutterMarker(lineIdx) {
+addGutterMarker(lineIdx) {
   const editor = this.editor;
   const session = editor.session;
 
@@ -354,7 +349,7 @@ class AcodeConsole {
 
   // Adiciona estilo para o marker
   this.addGutterMarkerStyle();
- }
+}
 
  /**
   * description
@@ -753,7 +748,7 @@ class AcodeConsole {
   * description
   *
   */
-addToLogger(message) {
+ addToLogger(message) {
   if (!this.logContainer) {
    console.error("logContainer não está definido.");
    return;
@@ -1043,11 +1038,11 @@ display: none;
  }
 }
 
-/**
- * description
- *
- */
-if (window.acode) {
+ /**
+  * description
+  *
+  */
+ if (window.acode) {
  const acodePlugin = new AcodeConsole();
  acode.setPluginInit(plugin.id, async (baseUrl, $page, { cacheFileUrl, cacheFile }) => {
   try {
