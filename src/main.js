@@ -3,7 +3,6 @@ const toast = acode.require("toast");
 
 
 class AcodeConsole {
-
  constructor() {
   this.editor = editorManager.editor;
   this.isRunning = false;
@@ -14,213 +13,120 @@ class AcodeConsole {
   this.networkIntercepted = false;
   this.loggerVisible = false;
   this.filters = [];
-  this.logs = []; // Armazenar todos os logs
   this.originalXHR = XMLHttpRequest.prototype.open;
   this.originalFetch = window.fetch.bind(window);
-  this.originalWebSocket = window.WebSocket;
-
-  this.createLoggerViewer();
+  this.originalWebSocket = window.WebSocket; 
+  this.createLoggerView();
   this.enhanceAccessibility();
   this.interceptNetworkRequests();
-
-  // Filtros iniciais
-  this.setupFilter();
-
-
-  // Adicione estas propriedades
-  this.tooltip = null;
-  this.currentTooltipLine = null;
-  this.tooltipVisible = false;
-  this.tooltipHideTimeout = null;
-
-  // Crie o tooltip no construtor
-  this.createTooltip();
  }
 
  /**
-  * description
-  *
-  */
- createTooltip() {
-  this.tooltip = document.createElement('div');
-  Object.assign(this.tooltip.style, {
-   position: 'absolute',
-   zIndex: '9999',
-   backgroundColor: 'var(--secondary-color)',
-   color: '#fff',
-   padding: '8px',
-   borderRadius: '4px',
-   boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
-   maxWidth: '400px',
-   fontSize: '12px',
-   fontFamily: 'monospace',
-   pointerEvents: 'none',
-   // display: 'none',
-   whiteSpace: 'pre-wrap',
-   border: '1px solid var(--border-color)'
-  });
-  this.tooltip.className = 'acode-console-tooltip';
-  document.body.appendChild(this.tooltip);
-
-  // Adicione eventos para fechar o tooltip
-
- }
-
- /**
-  * description
-  *
-  */
- createLoggerViewer() {
+ * Cria a interface do logger
+ */
+ 
+ createLoggerView() {
+  // Elemento principal
   this.loggerView = document.createElement("div");
   Object.assign(this.loggerView.style, {
-    position: "fixed",
-    bottom: "-390px",
-    right: "10px",
-    width: "calc(100% - 20px)",
-    maxWidth: "800px",
-    height: "350px",
-    background: "var(--primary-color)",
-    color: "var(--text-color)",
-    fontFamily: "monospace",
-    fontSize: "12px",
-    borderRadius: "8px",
-    boxShadow: "0 4px 20px rgba(0, 0, 0, 0.3)",
-    overflow: "hidden",
-    zIndex: "1000",
-    transition: "bottom 0.3s ease-in-out",
-    border: "1px solid var(--border-color)",
-    display: "flex",
-    flexDirection: "column"
+   position: "fixed",
+   bottom: "-360px",
+   right: "20px",
+   width: "70%",
+   maxWidth: "600px",
+   height: "350px",
+   background: "var(--primary-color)",
+   color: "#fff",
+   fontFamily: "monospace",
+   fontSize: "14px",
+   borderRadius: "8px",
+   boxShadow: "0 2px 10px rgba(0, 0, 0, 0.5)",
+   resize: "both",
+   overflow: "hidden",
+   zIndex: "999",
+   transition: "bottom 0.3s ease-in-out"
   });
   this.loggerView.className = "acode-console";
 
+  // Header
   const header = document.createElement("div");
   Object.assign(header.style, {
-    background: "var(--secondary-color)",
-    padding: "8px 12px",
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    cursor: "grab",
-    userSelect: "none",
-    fontSize: "12px",
-    fontWeight: "bold",
-    borderBottom: "1px solid var(--border-color)"
+   background: "#333",
+   padding: "8px",
+   display: "flex",
+   justifyContent: "space-between",
+   alignItems: "center",
+   cursor: "grab",
+   userSelect: "none"
   });
   header.innerHTML = `<span>Network Logs</span>`;
 
+  // Botão de fechar
   const closeButton = document.createElement("button");
   closeButton.textContent = "×";
   Object.assign(closeButton.style, {
-    background: "transparent",
-    color: "var(--text-color)",
-    border: "none",
-    fontSize: "18px",
-    cursor: "pointer",
-    width: "28px",
-    height: "28px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: "4px",
-    transition: "background 0.2s"
+   background: "transparent",
+   color: "#fff",
+   border: "none",
+   fontSize: "16px",
+   cursor: "pointer",
+   width: "24px",
+   height: "24px",
+   display: "flex",
+   alignItems: "center",
+   justifyContent: "center"
   });
-  closeButton.addEventListener("mouseover", () => {
-    closeButton.style.background = "rgba(255, 255, 255, 0.1)";
-  });
-  closeButton.addEventListener("mouseout", () => {
-    closeButton.style.background = "transparent";
-  });
-  closeButton.addEventListener("click", () => this.closeLoggerViewer());
+  closeButton.addEventListener("click", () => this.closeLoggerView());
 
+  // Botão de limpar
   const clearButton = document.createElement("button");
   clearButton.textContent = "Clear";
   Object.assign(clearButton.style, {
-    background: "var(--accent-color)",
-    color: "#fff",
-    border: "none",
-    padding: "6px 12px",
-    borderRadius: "4px",
-    cursor: "pointer",
-    marginRight: "8px",
-    fontSize: "12px",
-    transition: "opacity 0.2s"
+   background: "#ff5555",
+   color: "#fff",
+   border: "none",
+   padding: "4px 8px",
+   borderRadius: "4px",
+   cursor: "pointer",
+   marginLeft: "8px"
   });
-  clearButton.addEventListener("mouseover", () => {
-    clearButton.style.opacity = "0.8";
-  });
-  clearButton.addEventListener("mouseout", () => {
-    clearButton.style.opacity = "1";
-  });
-  clearButton.addEventListener("click", () => this.clearLoggerViewer());
+  clearButton.addEventListener("click", () => this.clearLogs());
 
   const buttonGroup = document.createElement("div");
   buttonGroup.style.display = "flex";
-  buttonGroup.style.alignItems = "center";
-  buttonGroup.style.gap = "8px";
   buttonGroup.appendChild(clearButton);
   buttonGroup.appendChild(closeButton);
 
   header.appendChild(buttonGroup);
   this.loggerView.appendChild(header);
 
-  // Criando o logContainer
+  // Container de logs
   this.logContainer = document.createElement("div");
   Object.assign(this.logContainer.style, {
-    padding: "0",
-    overflowY: "auto",
-    height: "100%",
-    backgroundColor: "var(--primary-color)",
-    flex: "1",
-    scrollBehavior: "smooth"
+   padding: "8px",
+   overflowY: "auto",
+   height: "calc(100% - 40px)",
+   backgroundColor: "#1a1a1a"
   });
-  
-  // Adicionando scrollbar personalizada
-  const scrollbarStyle = document.createElement("style");
-  scrollbarStyle.textContent = `
-    .acode-console::-webkit-scrollbar {
-      width: 8px;
-      height: 8px;
-    }
-    .acode-console::-webkit-scrollbar-thumb {
-      background-color: var(--scrollbar-thumb);
-      border-radius: 4px;
-    }
-    .acode-console::-webkit-scrollbar-track {
-      background-color: var(--scrollbar-track);
-    }
-  `;
-  document.head.appendChild(scrollbarStyle);
-
   this.loggerView.appendChild(this.logContainer);
 
   document.body.appendChild(this.loggerView);
-  this.makeDraggable(this.loggerView, header);
-}
+  this.makeDraggable(this.loggerView, header); // Chama a função implementada
+ }
 
- /**
-  * description
-  *
-  */
  async init(baseUrl) {
-  this.editor.renderer.on("scroll", () => {
-   const scrollTop = this.editor.session.getScrollTop();
-   const scrollLeft = this.editor.session.getScrollLeft();
-   console.log(`Rolagem detectada - Vertical: ${scrollTop}, Horizontal: ${scrollLeft}`);
-  });
-
   try {
    const { commands } = editorManager.editor;
 
    commands.addCommand({
     name: "logger-view",
     bindKey: { win: "Alt-l", mac: "Command-Shift-l" },
-    exec: () => this.toggleLoggerViewer(),
+    exec: () => this.toggleLoggerView(),
    });
 
    this.isRunning = true;
    toast("Acode Console iniciado!");
-
+   
    this.editor.session.on("change", this.debounce(() => this.handleInput(), 300));
    this.initMutationObserver();
    this.interceptWebSockets();
@@ -230,21 +136,13 @@ class AcodeConsole {
    toast("Erro ao iniciar Acode Console");
   }
  }
-
- /**
-  * description
-  *
-  */
-  getAceLines() {
+ 
+ getAceLines() {
   const editorContainer = document.querySelector('.ace_editor');
   if (!editorContainer) return [];
   return editorContainer.querySelectorAll('.ace_scroller .ace_layer.ace_text-layer .ace_line');
  }
 
- /**
-  * description
-  *
-  */
  clearLogs() {
   const outputs = document.querySelectorAll(".console-output");
   outputs.forEach((o) => o.remove());
@@ -256,10 +154,8 @@ class AcodeConsole {
   }
  }
 
- /**
-  * description
-  *
-  */
+
+
  analyzeCode() {
   try {
    this.clearLogs();
@@ -270,74 +166,56 @@ class AcodeConsole {
    let logs = [];
    let logLines = [];
 
-   const logTypes = ['log', 'error', 'warn', 'info', 'debug'];
    lines.forEach((line, idx) => {
-    logTypes.forEach(type => {
-     if (line.includes(`console.${type}`)) {
-      logLines.push({ lineIdx: idx, type, code: line.trim() });
-     }
-    });
+    if (line.includes("console.log")) {
+     logLines.push({
+      lineIdx: idx,
+      code: line.trim()
+     });
+    }
    });
 
-   if (logLines.length === 0) return;
-
-   const originalConsole = {};
-   logTypes.forEach(type => {
-    originalConsole[type] = console[type];
-    console[type] = (...args) => logs.push({ type, output: this.formatLogOutput(args), lineIdx: logLines[logs.length]?.lineIdx });
-   });
+   const originalConsoleLog = console.log;
+   console.log = (...args) => {
+    logs.push(this.formatLogOutput(args));
+   };
 
    const wrappedFunction = new Function(code);
    wrappedFunction();
-
-   logTypes.forEach(type => console[type] = originalConsole[type]);
-
-   this.logs = logs; // Armazena os logs com lineIdx
+   console.log = originalConsoleLog;
 
    logLines.forEach((logLine, i) => {
-    if (logs[i]) this.addOutput(logLine.lineIdx, logs[i].output, logs[i].type);
+    if (logs[i] !== undefined) {
+     this.addOutput(logLine.lineIdx, logs[i]);
+    }
    });
   } catch (e) {
-   this.addOutput(0, `Erro: ${e.message}`, 'error');
+   this.addOutput(0, `Erro: ${e.message}`);
   }
  }
 
- /**
-  * description
-  *
-  */
- addOutput(aceLineIdx, code, type = 'log') {
-   console.log('iniciou addOutput')
-    
+ addOutput(aceLineIdx, code) {
   this.refreshAceLines();
   const line = this.aceLines[aceLineIdx];
   if (!line) return;
 
+  // Remove qualquer output existente para esta linha
   const existingOutput = line.querySelector(".console-output");
-  if (existingOutput) existingOutput.remove();
+  if (existingOutput) {
+   existingOutput.remove();
+  }
 
   const consoleOutput = document.createElement("pre");
-  consoleOutput.className = `console-output console-${type}`;
+  consoleOutput.className = "console-output";
   consoleOutput.textContent = `${code}`;
-  consoleOutput.style.cssText = `font-style: normal; display: inline; margin-left: 5px;`;
+  consoleOutput.style.cssText = `color: #888; font-style: normal; opacity: 0.8; display: inline; margin-left: 5px;`;
   line.appendChild(consoleOutput);
 
+  // Adiciona marker no gutter
   this.addGutterMarker(aceLineIdx);
-
-  consoleOutput.addEventListener('click', () => {
-   this.editor.gotoLine(aceLineIdx + 1);
-   
-  
-   
-   this.editor.focus();
-  });
  }
- 
- /**
-  * description
-  *
-  */
-addGutterMarker(lineIdx) {
+
+ addGutterMarker(lineIdx) {
   const editor = this.editor;
   const session = editor.session;
 
@@ -349,109 +227,37 @@ addGutterMarker(lineIdx) {
 
   // Adiciona estilo para o marker
   this.addGutterMarkerStyle();
-}
+ }
 
- /**
-  * description
-  *
-  */
  removeGutterMarker(lineIdx) {
   const session = this.editor.session;
   session.removeGutterDecoration(lineIdx, "console-log-marker");
  }
 
- /**
-  * description
-  *
-  */
- showTooltipForLine(lineIdx) {
-  const logOutput = this.getLogOutputForLine(lineIdx);
-  if (logOutput) {
-   this.tooltip.textContent = logOutput;
-   this.positionTooltip(lineIdx);
-   this.tooltip.style.display = 'block';
-   this.currentTooltipLine = lineIdx;
-
-   clearTimeout(this.tooltipHideTimeout);
-   this.tooltipHideTimeout = setTimeout(() => {
-    this.hideTooltip();
-   }, 5000);
-  }
- }
-
- /**
-  * description
-  *
-  */
- getLogOutputForLine(lineIdx) {
-  const log = this.logs.find(log => log.lineIdx === lineIdx);
-  return log ? log.output : 'No log output available';
- }
-
- /**
-  * description
-  *
-  */
- positionTooltip(lineIdx) {
-  const renderer = this.editor.renderer;
-  const config = renderer.layerConfig;
-  const screenPos = renderer.$cursorLayer.getPixelPosition({ row: lineIdx, column: 0 }, true);
-
-  const top = screenPos.top + config.offset;
-  const left = screenPos.left + 20;
-
-  this.tooltip.style.top = `${top}px`;
-  this.tooltip.style.left = `${left}px`;
- }
-
- /**
-  * description
-  *
-  */
- hideTooltip() {
-  this.tooltip.style.display = 'none';
-  this.currentTooltipLine = null;
- }
-
- /**
-  * description
-  *
-  */
  addGutterMarkerStyle() {
   const styleId = "console-log-marker-style";
   if (document.getElementById(styleId)) return;
 
   const style = document.createElement("style");
   style.id = styleId;
-  style.textContent = `
-.console-output.console-log { color: #aaa; }
+  style.textContent = ` 
+  
+  .console-output.console-log { color: #aaa; }
 .console-output.console-error { color: #ff5555; }
 .console-output.console-warn { color: #ffaa55; }
 .console-output.console-info { color: #55aaff; }
 .console-output.console-debug { color: #aa55ff; }
 
 .ace_gutter-cell.console-log-marker {
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="%23ffcc00"/></svg>');
-  background-repeat: no-repeat;
-  background-position: center;
-  color: transparent !important;
+background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="%23ffcc00"/></svg>');
+background-repeat: no-repeat;
+background-position: center;
+color: transparent !important;
 }
-  `;
+`;
   document.head.appendChild(style);
-
-  this.editor.renderer.$gutter.addEventListener("click", (event) => {
-   const target = event.target;
-   if (target.classList.contains("ace_gutter-cell") && target.classList.contains("console-log-marker")) {
-    const row = parseInt(target.getAttribute('aria-rowindex'), 10) - 1;
-    this.showTooltipForLine(row);
-   }
-  });
  }
 
- /**
-  * description
-  *
-  */
  formatLogOutput(args) {
   const formattedArgs = args.map(arg => {
    if (Array.isArray(arg)) {
@@ -464,10 +270,6 @@ addGutterMarker(lineIdx) {
   return formattedArgs.join(' ');
  }
 
- /**
-  * description
-  *
-  */
  formatValue(value) {
   if (typeof value === 'string') return `"${value}"`;
   if (typeof value === 'number') return value;
@@ -477,10 +279,6 @@ addGutterMarker(lineIdx) {
   return value;
  }
 
- /**
-  * description
-  *
-  */
  formatObject(obj) {
   const entries = Object.entries(obj);
   if (entries.length === 0) return '{}';
@@ -491,19 +289,11 @@ addGutterMarker(lineIdx) {
 
   return `{ ${formatted.join(', ')} }`;
  }
-
- /**
-  * description
-  *
-  */
+ 
  refreshAceLines() {
   this.aceLines = this.getAceLines();
- }
-
- /**
-  * description
-  *
-  */
+ } 
+ 
  handleInput() {
   if (!this.isRunning) return;
   this.refreshAceLines();
@@ -515,12 +305,8 @@ addGutterMarker(lineIdx) {
     this.analyzeCode();
    }, 500);
   }
- }
-
- /**
-  * description
-  *
-  */
+ } 
+ 
  debounce(func, wait) {
   let timeout;
   return (...args) => {
@@ -528,12 +314,12 @@ addGutterMarker(lineIdx) {
    timeout = setTimeout(() => func.apply(this, args), wait);
   };
  }
-
+ 
  /**
   *  Metodos do loggerView
-  * Network Logging
   */
- highlightJson(jsonString) {
+   
+  highlightJson(jsonString) {
   if (!jsonString) return '';
 
   return jsonString
@@ -555,12 +341,8 @@ addGutterMarker(lineIdx) {
     return `<span style="${cls}">${match}</span>`;
    });
  }
-
- /**
-  * description
-  *
-  */
- initMutationObserver() {
+   
+  initMutationObserver() {
   const editorElement = document.querySelector('.ace_editor');
   if (!editorElement) return;
   this.observer = new MutationObserver(() => {
@@ -569,71 +351,45 @@ addGutterMarker(lineIdx) {
   });
   this.observer.observe(editorElement, { childList: true, subtree: true });
  }
-
- /**
-  * description
-  *
-  */
- toggleLoggerViewer() {
-  if (!this.loggerView) {
-   console.error("loggerView não está definido.");
-   return;
-  }
-  if (this.loggerView.style.bottom === "-390px" || !this.loggerVisible) {
-   this.loggerView.style.bottom = "0";
-   this.loggerView.style.top = "auto";
+   
+  toggleLoggerView() {
+  if (this.loggerView.style.bottom === "-360px" || !this.loggerVisible) {
+   this.loggerView.style.bottom = "20px";
    this.loggerVisible = true;
    this.loggerView.setAttribute('aria-hidden', 'false');
+
    if (!this.networkIntercepted) {
     this.interceptNetworkRequests();
     this.networkIntercepted = true;
    }
   } else {
-   this.closeLoggerViewer();
+   this.closeLoggerView();
   }
  }
-
- /**
-  * description
-  *
-  */
- closeLoggerViewer() {
-  if (!this.loggerView) {
-   console.error("loggerView não está definido.");
-   return;
-  }
-  this.loggerView.style.bottom = "-390px"; // Volta para a posição inicial
-  this.loggerView.style.top = "auto";     // Remove a posição top
-  this.loggerVisible = false;
-  this.loggerView.setAttribute('aria-hidden', 'true');
- }
-
- /**
-  * description
-  *
-  */
- clearLoggerViewer() {
-  if (!this.logContainer) {
-   console.error("logContainer não está definido.");
-   return;
-  }
-  while (this.logContainer.firstChild) {
-   this.logContainer.firstChild.remove();
+   
+  closeLoggerView() {
+  if (this.loggerView) {
+   this.loggerView.style.bottom = "-360px"; // Esconde o logger
+   this.loggerVisible = false;
+   this.loggerView.setAttribute('aria-hidden', 'true');
   }
  }
-
- /**
-  * description
-  *
-  */
- interceptNetworkRequests() {
+    
+  clearLoggerView() {
+  if (this.logContainer) {
+   while (this.logContainer.firstChild) {
+    this.logContainer.firstChild.remove();
+   }
+  }
+ }
+   
+  interceptNetworkRequests() {
   const acodePlugin = this;
   const MAX_LOG_LENGTH = 1000;
   const MAX_LOGS = 100;
-  const startTime = Date.now();
 
   XMLHttpRequest.prototype.open = function (method, url, ...rest) {
-
+   const startTime = Date.now();
    this.addEventListener("load", () => {
     const duration = Date.now() - startTime;
     let payload = "";
@@ -645,8 +401,8 @@ addGutterMarker(lineIdx) {
      payload = `Erro ao processar resposta: ${e.message}`;
     }
 
-    const message = `XHR ${method} ${url} - Status: ${this.status} - Duration: ${duration}ms`;
-
+   const message = `XHR ${method} ${url} - Status: ${this.status} - Duration: ${duration}ms`;
+   
     acodePlugin.addToLogger(`${message}\n${payload}`);
    }, { once: true });
 
@@ -681,12 +437,8 @@ addGutterMarker(lineIdx) {
    }
   };
  }
-
- /**
-  * description
-  *
-  */
- interceptWebSockets() {
+   
+  interceptWebSockets() {
   window.WebSocket = class extends this.originalWebSocket {
    constructor(url, protocols) {
     super(url, protocols);
@@ -743,90 +495,96 @@ addGutterMarker(lineIdx) {
    }
   };
  }
-
- /**
-  * description
-  *
-  */
+   
  addToLogger(message) {
   if (!this.logContainer) {
-   console.error("logContainer não está definido.");
-   return;
+    console.error("logContainer não está definido.");
+    return;
   }
 
   const logEntry = document.createElement("div");
   logEntry.style.cssText = `
-padding: 8px;
-border-bottom: 1px solid #444;
-margin-bottom: 5px;
-background: #2a2a2a;
-border-radius: 2px;
-background: var(--primary-color);
+    padding: 8px;
+    border-bottom: 1px solid #444;
+    margin-bottom: 5px;
+    background: #2a2a2a;
+    border-radius: 2px;
+    background: var(--primary-color);
     transition: background 0.2s;
-`;
+  `;
 
   const [header, ...responseLines] = message.split("\n");
   const responseText = responseLines.join("\n").replace("Response: ", "");
 
-  const headerMatch = header.match(/(Fetch|XHR|WEBSOCKET)\s(\w+)\s(.+)\s-\sStatus:\s(\d+)/);
+  const headerMatch = header.match(/(Fetch|XHR|WEBSOCKET)\s(\w+)\s(.+)\s-\sStatus:\s(\d+)(?:\s-\sDuration:\s(\d+)ms)?/);
   if (headerMatch) {
-   const [, type, method, url, status] = headerMatch;
+    const [, type, method, url, status, duration] = headerMatch;
 
-   const headerDiv = document.createElement("div");
-   headerDiv.style.cssText = `
-
- display: flex;
+    const headerDiv = document.createElement("div");
+    headerDiv.style.cssText = `
+      display: flex;
       align-items: center;
       cursor: pointer;
       padding: 4px 0;
       gap: 8px;
       flex-wrap: wrap;
+    `;
 
+    const methodSpan = document.createElement("span");
+    methodSpan.textContent = method;
+    methodSpan.style.cssText = `
+      font-weight: bold;
+      margin-right: 8px;
+      color: ${method === "GET" ? "#55ff55" :
+               method === "POST" ? "#55aaff" :
+               method === "PUT" ? "#ffaa55" :
+               method === "DELETE" ? "#ff5555" :
+               method === "PATCH" ? "#aa55ff" :
+               method === "WEBSOCKET" ? "#aa00ff" : "#fff"};
+    `;
+    headerDiv.appendChild(methodSpan);
 
-
-`;
-
-   const methodSpan = document.createElement("span");
-   methodSpan.textContent = method;
-   methodSpan.style.cssText = `
-font-weight: bold;
-margin-right: 8px;
-color: ${method === "GET" ? "#55ff55" :
-     method === "POST" ? "#55aaff" :
-      method === "PUT" ? "#ffaa55" :
-       method === "DELETE" ? "#ff5555" :
-        method === "PATCH" ? "#aa55ff" :
-         method === "WEBSOCKET" ? "#aa00ff" : "#fff"};
-`;
-   headerDiv.appendChild(methodSpan);
-
-   const urlSpan = document.createElement("span");
-   urlSpan.textContent = url;
-   urlSpan.style.cssText = `
+    const urlSpan = document.createElement("span");
+    urlSpan.textContent = url;
+    urlSpan.style.cssText = `
       flex: 1;
       color: var(--text-color);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
       min-width: 100px;
-`;
-   headerDiv.appendChild(urlSpan);
+    `;
+    headerDiv.appendChild(urlSpan);
 
-   const statusSpan = document.createElement("span");
-   statusSpan.textContent = status;
-   statusSpan.style.cssText = `
-margin-left: 8px;
-font-weight: bold;
-color: ${status.toString().startsWith("2") ? "#55ff55" :
-     (status.toString().startsWith("4") || status.toString().startsWith("5")) ? "#ff5555" : "#fff"};
-`;
-   headerDiv.appendChild(statusSpan);
+    const statusSpan = document.createElement("span");
+    statusSpan.textContent = status;
+    statusSpan.style.cssText = `
+      margin-left: 8px;
+      font-weight: bold;
+      color: ${status.toString().startsWith("2") ? "#55ff55" :
+               (status.toString().startsWith("4") || status.toString().startsWith("5")) ? "#ff5555" : "#fff"};
+    `;
+    headerDiv.appendChild(statusSpan);
 
-   logEntry.appendChild(headerDiv);
+    // Adiciona a duração, se estiver presente
+    if (duration) {
+      const durationSpan = document.createElement("span");
+      durationSpan.textContent = `${duration}ms`;
+      durationSpan.style.cssText = `
+        margin-left: 8px;
+        opacity: 0.7;
+        background: #d6810e;
+        padding: 2px;
+        border-radius: 3px;
+      `;
+      headerDiv.appendChild(durationSpan);
+    }
 
-   const responseDiv = document.createElement("div");
-   responseDiv.style.cssText = `
-display: none;
+    logEntry.appendChild(headerDiv);
+
+    const responseDiv = document.createElement("div");
+    responseDiv.style.cssText = `
+      display: none;
       padding: 8px;
       background: var(--secondary-color);
       border-radius: 4px;
@@ -836,102 +594,93 @@ display: none;
       color: var(--text-color);
       max-height: 200px;
       overflow: auto;
-`;
+    `;
 
-   try {
-    const json = JSON.parse(responseText);
-    const prettyJson = JSON.stringify(json, null, 2);
-    responseDiv.innerHTML = this.highlightJson ? this.highlightJson(prettyJson) : prettyJson;
-   } catch (e) {
-    responseDiv.textContent = responseText || "No response data";
-   }
+    try {
+      const json = JSON.parse(responseText);
+      const prettyJson = JSON.stringify(json, null, 2);
+      responseDiv.innerHTML = this.highlightJson ? this.highlightJson(prettyJson) : prettyJson;
+    } catch (e) {
+      responseDiv.textContent = responseText || "No response data";
+    }
 
-   logEntry.appendChild(responseDiv);
+    logEntry.appendChild(responseDiv);
 
-   headerDiv.addEventListener("click", () => {
-    responseDiv.style.display = responseDiv.style.display === "none" ? "block" : "none";
-   });
+    headerDiv.addEventListener("click", () => {
+      responseDiv.style.display = responseDiv.style.display === "none" ? "block" : "none";
+    });
   } else {
-   // Tratamento para mensagens WebSocket ou não formatadas
-   logEntry.textContent = message;
-   try {
-    const json = JSON.parse(message);
-    const prettyJson = JSON.stringify(json, null, 2);
-    logEntry.innerHTML = this.highlightJson ? this.highlightJson(prettyJson) : prettyJson;
-   } catch (e) {
+    // Tratamento para mensagens WebSocket ou não formatadas
     logEntry.textContent = message;
-   }
+    try {
+      const json = JSON.parse(message);
+      const prettyJson = JSON.stringify(json, null, 2);
+      logEntry.innerHTML = this.highlightJson ? this.highlightJson(prettyJson) : prettyJson;
+    } catch (e) {
+      logEntry.textContent = message;
+    }
   }
 
   this.logContainer.appendChild(logEntry);
 
   const logs = this.logContainer.children;
   if (logs.length > 100) {
-   logs[0].remove();
+    logs[0].remove();
   }
 
   this.logContainer.scrollTop = this.logContainer.scrollHeight;
- }
-
- /**
-  * description
-  *
-  */
- applyFilters(logData) {
+}
+   
+  applyFilters(logData) {
   if (!this.filters.length) return true;
   return this.filters.every(filter => filter(logData));
  }
-
- /**
-  * description
-  *
-  */
- addFilter(filterFn) {
+   
+  addFilter(filterFn) {
   this.filters.push(filterFn);
  }
-
- /**
-  * description
-  *
-  */
- enhanceAccessibility() {
+   
+  enhanceAccessibility() {
   this.loggerView.setAttribute('role', 'log');
   this.loggerView.setAttribute('aria-live', 'polite');
   this.loggerView.setAttribute('aria-label', 'Network logs console');
  }
-
- /**
-  * description
-  *
-  */
- makeDraggable(element, handle) {
-  let pos2 = 0, pos4 = 0;
+   
+  makeDraggable(element, handle) {
+  let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
   let isDragging = false;
 
+  // Função para iniciar o arraste
   const dragMouseDown = (e) => {
    e.preventDefault();
+   // Pega a posição inicial do mouse
+   pos3 = e.clientX;
    pos4 = e.clientY;
    isDragging = true;
+
    document.onmousemove = elementDrag;
    document.onmouseup = closeDragElement;
   };
 
+  // Função para mover o elemento
   const elementDrag = (e) => {
    if (!isDragging) return;
+
    e.preventDefault();
+   // Calcula a nova posição do cursor
+   pos1 = pos3 - e.clientX;
    pos2 = pos4 - e.clientY;
+   pos3 = e.clientX;
    pos4 = e.clientY;
 
-   // Calcula a nova posição vertical
-   const newTop = element.offsetTop - pos2;
-   // Limita o movimento ao eixo vertical
-   element.style.top = newTop + "px";
-   element.style.bottom = "auto";
-   // Mantém a posição horizontal fixa
-   element.style.left = "0px";
-   element.style.right = "auto";
+   // Define a nova posição do elemento
+   element.style.top = (element.offsetTop - pos2) + "px";
+   element.style.left = (element.offsetLeft - pos1) + "px";
+   element.style.bottom = "auto"; // Remove a ancoragem inferior enquanto arrasta
+   element.style.right = "auto"; // Remove a ancoragem à direita enquanto arrasta
   };
 
+  // Função para finalizar o arraste
   const closeDragElement = () => {
    if (!isDragging) return;
    isDragging = false;
@@ -939,22 +688,26 @@ display: none;
    document.onmouseup = null;
   };
 
+  // Adiciona o evento de mousedown ao handle
   handle.onmousedown = dragMouseDown;
 
+  // Adiciona suporte para toque (opcional, para dispositivos móveis)
   handle.ontouchstart = (e) => {
    const touch = e.touches[0];
+   pos3 = touch.clientX;
    pos4 = touch.clientY;
    isDragging = true;
 
    document.ontouchmove = (e) => {
     const touchMove = e.touches[0];
+    pos1 = pos3 - touchMove.clientX;
     pos2 = pos4 - touchMove.clientY;
+    pos3 = touchMove.clientX;
     pos4 = touchMove.clientY;
 
-    const newTop = element.offsetTop - pos2;
-    element.style.top = newTop + "px";
+    element.style.top = (element.offsetTop - pos2) + "px";
+    element.style.left = (element.offsetLeft - pos1) + "px";
     element.style.bottom = "auto";
-    element.style.left = "0px";
     element.style.right = "auto";
    };
 
@@ -965,6 +718,7 @@ display: none;
    };
   };
 
+  // Armazena a função de limpeza para uso no destroy
   this.dragCleanup = () => {
    handle.onmousedown = null;
    handle.ontouchstart = null;
@@ -975,27 +729,6 @@ display: none;
   };
  }
 
- /**
-  * description
-  *
-  */
- setupFilter() {
-
-  // Filtrar por URL (ex.: localhost/__cdvfile_temporary__) evitar que logs como este apareçam
-  this.addFilter((logData) => {
-   if (typeof logData === "string") {
-    return !logData.includes("https://localhost/__cdvfile_temporary__");
-   }
-   return !(logData.url && logData.url.includes("https://localhost/__cdvfile_temporary__"));
-  });
-
-
- }
-
- /**
-  * description
-  *
-  */
  async destroy() {
   try {
    // Restaurar métodos originais
@@ -1038,11 +771,7 @@ display: none;
  }
 }
 
- /**
-  * description
-  *
-  */
- if (window.acode) {
+if (window.acode) {
  const acodePlugin = new AcodeConsole();
  acode.setPluginInit(plugin.id, async (baseUrl, $page, { cacheFileUrl, cacheFile }) => {
   try {
